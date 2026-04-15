@@ -1,0 +1,19 @@
+# 自动生成/插件目录（不需要上传）
+lazy-lock.json
+lazyvim.json
+log/
+.cache/
+node_modules/
+
+# 日志和临时文件
+*.log
+*.tmp
+*.swp
+*.suo
+*~
+.DS_Store
+Thumbs.db
+
+# 敏感/本地信息（可选）
+.env
+secrets.lua
