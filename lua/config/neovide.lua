@@ -57,7 +57,9 @@ vim.api.nvim_create_autocmd("VimEnter", {
 -- Ctrl+S 保存（所有模式通用）
 vim.keymap.set({ "n", "i", "v" }, "<C-s>", "<Cmd>w<CR>", { desc = "保存文件 (Ctrl+S)" })
 
--- 字体大小调整
+-- 字体大小调整（带非刷屏通知）
+local last_font_size = nil
+
 local function adjust_font_size(delta)
     local font = vim.o.guifont
     local name, size = string.match(font, "(.+):h(%d+)$")
@@ -66,13 +68,22 @@ local function adjust_font_size(delta)
         local new_size = tonumber(size) + delta
         new_size = math.max(6, math.min(30, new_size))
         vim.o.guifont = string.format("%s:h%d", name, new_size)
-        vim.notify("字体大小: " .. new_size)
+
+        -- 【方案2】只用原生 vim.notify，不 require 任何东西
+        -- 如果要避免刷屏，用 print 代替（更轻量，不堆积）
+        if last_font_size then
+            -- 清除上一条 echo 消息（防止刷屏）
+            vim.cmd("echo ''")
+        end
+        vim.api.nvim_echo({ { "字体大小: " .. new_size, "WarningMsg" } }, false, {})
+        last_font_size = new_size
     end
 end
 
 vim.keymap.set({ "n", "i" }, "<C-=>", function()
     adjust_font_size(1)
 end, { desc = "增大字体" })
+
 vim.keymap.set({ "n", "i" }, "<C-->", function()
     adjust_font_size(-1)
 end, { desc = "减小字体" })
