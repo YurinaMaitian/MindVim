@@ -9,6 +9,7 @@
 -- 确保 Python 文件自动启动 LSP
 
 -- 智能 scrolloff 补全：保持光标居中，但避免无限追加空行
+
 vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
     pattern = "*",
     callback = function()

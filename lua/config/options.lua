@@ -30,3 +30,6 @@ vim.env.http_proxy = proxy
 vim.env.https_proxy = proxy
 vim.env.HTTP_PROXY = proxy
 vim.env.HTTPS_PROXY = proxy
+
+-- 确保真彩色开启（Windows Terminal 原生支持）
+vim.opt.termguicolors = true

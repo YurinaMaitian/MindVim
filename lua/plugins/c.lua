@@ -1,5 +1,6 @@
 -- lua/plugins/c.lua（完全切换 Clang）
 -- C/C++ F5 编译运行配置（toggleterm 基础配置在 toggleterm.lua 中）
+-- 已经把clang添加进环境变量，如果更换设备记得指定clang路径或者加至环境变量
 
 local c_term = nil
 
@@ -13,13 +14,13 @@ local function save_and_run_c()
     local output = string.format("%s/%s.exe", dir_clean, filename_noext)
 
     local cmd
-    local build_script = dir .. "/build.sh"
+    local build_script = dir .. "/build.bat"
     local has_build_script = vim.fn.filereadable(build_script) == 1
 
     if has_build_script then
-        cmd = string.format('cd /d "%s" && bash build.sh', dir)
+        cmd = string.format('cd /d "%s" && build.bat', dir)
     else
-        local compiler = "D:/llvm/bin/clang.exe"
+        local compiler = "clang.exe"
         cmd = string.format(
             'cd /d "%s" && "%s" --target=x86_64-w64-mingw32 -isystem D:/mingw64/x86_64-w64-mingw32/include -LD:/mingw64/x86_64-w64-mingw32/lib -Wall -Wextra -g -std=c11 -o "%s" "%s" && echo [编译成功，正在运行...] && "%s"',
             dir,
