@@ -29,3 +29,20 @@ end, { desc = "终端粘贴" })
 vim.keymap.set({ "n", "i", "t" }, "<C-\\>", function()
     require("toggleterm").toggle()
 end, { desc = "切换终端" })
+
+-- Alt+Enter，实现错误导入或者补全
+vim.keymap.set("n", "<A-CR>", vim.lsp.buf.code_action, { desc = "Code Action" })
+
+-- 先取消 LazyVim 默认的 Shift+H/L 映射
+vim.keymap.del("n", "<S-h>", { silent = true })
+vim.keymap.del("n", "<S-l>", { silent = true })
+
+-- 新绑 Alt+H/L 切换 buffer
+vim.keymap.set("n", "<A-h>", "<Cmd>bprevious<CR>", { desc = "上一个 buffer", silent = true })
+vim.keymap.set("n", "<A-l>", "<Cmd>bnext<CR>", { desc = "下一个 buffer", silent = true })
+
+-- Ctrl + 方向键 调整窗口大小（Neovide 中可按住连续发送）
+vim.keymap.set("n", "<C-Up>", "<Cmd>resize +2<<CR>", { desc = "窗口增高" })
+vim.keymap.set("n", "<C-Down>", "<Cmd>resize -2<<CR>", { desc = "窗口减高" })
+vim.keymap.set("n", "<C-Left>", "<Cmd>vertical resize -2<<CR>", { desc = "窗口减宽" })
+vim.keymap.set("n", "<C-Right>", "<Cmd>vertical resize +2<<CR>", { desc = "窗口增宽" })

@@ -26,7 +26,7 @@ return {
                 end
 
                 -- 禁用签名帮助自动触发
-                client.server_capabilities.signatureHelpProvider = false
+                -- client.server_capabilities.signatureHelpProvider = false
             end
 
             return opts

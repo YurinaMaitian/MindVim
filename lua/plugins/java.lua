@@ -7,14 +7,78 @@ return {
             local jdtls = require("jdtls")
             local Terminal = require("toggleterm.terminal").Terminal
 
-            -- ==================== 路径配置（根据你的实际路径修改） ====================
-            local jdk_path = "C:\\Program Files\\Microsoft\\jdk-21.0.7.6-hotspot"
+            -- 【确认】改成你实际安装的 JDK 路径
+            local jdk_path = "C:\\Program Files\\Microsoft\\jdk-21.0.11.10-hotspot"
             local jdtls_path = "D:\\jdtls"
             local workspace_dir = vim.fn.stdpath("data")
                 .. "\\jdtls-workspace\\"
                 .. vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
 
-            -- ==================== JDTLS 启动配置 ====================
+            local java_term = nil
+
+            -- F5 编译运行（bin 目录隔离 .class）
+            local function save_and_run_java()
+                vim.cmd("write")
+                local file = vim.fn.expand("%:p")
+                local dir = vim.fn.expand("%:p:h")
+                local class = vim.fn.expand("%:t:r")
+                local bin_dir = dir .. "\\bin"
+
+                if vim.fn.isdirectory(bin_dir) == 0 then
+                    vim.fn.mkdir(bin_dir, "p")
+                end
+
+                local cmd = string.format(
+                    'cd /d "%s" && "%s" -d "%s" -cp "%s" "%s" && echo [编译成功，正在运行...] && "%s" -cp "%s" "%s"',
+                    dir,
+                    jdk_path .. "\\bin\\javac.exe",
+                    bin_dir,
+                    bin_dir,
+                    file,
+                    jdk_path .. "\\bin\\java.exe",
+                    bin_dir,
+                    class
+                )
+
+                if java_term and java_term:is_open() then
+                    java_term:close()
+                    java_term = nil
+                end
+
+                java_term = Terminal:new({
+                    cmd = cmd,
+                    direction = "horizontal",
+                    size = 10,
+                    close_on_exit = false,
+                    auto_scroll = true,
+                    on_close = function()
+                        java_term = nil
+                    end,
+                    on_open = function(term)
+                        vim.cmd("startinsert!")
+                        vim.api.nvim_buf_set_name(term.bufnr, "Java: " .. class)
+                    end,
+                })
+
+                java_term:open()
+            end
+
+            -- FileType 绑定 F5（不依赖 on_attach）
+            vim.api.nvim_create_autocmd("FileType", {
+                pattern = "java",
+                callback = function(args)
+                    vim.keymap.set("n", "<F5>", save_and_run_java, {
+                        buffer = args.buf,
+                        silent = true,
+                        desc = "保存并运行 Java",
+                    })
+                    vim.keymap.set("n", "<leader>jo", function()
+                        jdtls.organize_imports()
+                    end, { buffer = args.buf, desc = "整理 imports" })
+                end,
+            })
+
+            -- JDTLS 配置
             local config = {
                 cmd = {
                     jdk_path .. "\\bin\\java.exe",
@@ -23,7 +87,8 @@ return {
                     "-Declipse.product=org.eclipse.jdt.ls.core.product",
                     "-Dlog.protocol=true",
                     "-Dlog.level=ALL",
-                    "-Xmx1g",
+                    "-Xmx2g",
+                    "-Xms1g",
                     "--add-modules=ALL-SYSTEM",
                     "--add-opens",
                     "java.base/java.util=ALL-UNNAMED",
@@ -36,13 +101,10 @@ return {
                     "-data",
                     workspace_dir,
                 },
-
                 root_dir = jdtls.setup.find_root({ ".git", "mvnw", "gradlew", "pom.xml", "build.gradle", ".project" }),
-
                 on_attach = function(client, bufnr)
-                    client.server_capabilities.progress = nil
+                    vim.notify("JDTLS 已启动", vim.log.levels.INFO)
                 end,
-
                 settings = {
                     java = {
                         signatureHelp = { enabled = true },
@@ -70,83 +132,28 @@ return {
                         },
                         configuration = {
                             runtimes = {
-                                {
-                                    name = "JavaSE-21",
-                                    path = jdk_path,
-                                    default = true,
-                                },
+                                { name = "JavaSE-21", path = jdk_path, default = true },
                             },
                         },
                     },
                 },
-
-                -- 初始化选项（调试相关，可选）
-                init_options = {
-                    bundles = {},
-                },
+                init_options = { bundles = {} },
             }
 
-            -- 启动 LSP
-            jdtls.start_or_attach(config)
-
-            -- ==================== F5 编译运行（使用 Toggleterm） ====================
-            local java_term = nil
-
-            local function save_and_run_java()
-                -- 强制保存
-                vim.cmd("write")
-
-                local file = vim.fn.expand("%:p") -- 完整路径：D:\Project\Main.java
-                local dir = vim.fn.expand("%:p:h") -- 目录：D:\Project
-                local class = vim.fn.expand("%:t:r") -- 类名：Main
-
-                -- Windows 命令：编译并运行（处理空格路径）
-                local cmd = string.format(
-                    'cd /d "%s" && javac "%s" && echo [编译成功，正在运行...] && java "%s"',
-                    dir,
-                    file,
-                    class
-                )
-
-                -- 关闭旧终端
-                if java_term and java_term:is_open() then
-                    java_term:close()
-                    java_term = nil
+            -- 【关键】手动重启 JDTLS 命令（不走 nvim-lspconfig 的默认配置）
+            vim.api.nvim_create_user_command("JavaLspRestart", function()
+                vim.notify("正在关闭 JDTLS...", vim.log.levels.INFO)
+                for _, client in ipairs(vim.lsp.get_clients({ name = "jdtls" })) do
+                    vim.lsp.stop_client(client.id, true)
                 end
+                vim.defer_fn(function()
+                    jdtls.start_or_attach(config)
+                    vim.notify("JDTLS 已重启", vim.log.levels.INFO)
+                end, 1000)
+            end, {})
 
-                -- 创建新终端（与 Python 共用 toggleterm 配置）
-                java_term = Terminal:new({
-                    cmd = cmd,
-                    direction = "horizontal",
-                    size = 10, -- 终端高度
-                    close_on_exit = false, -- 编译错误时保留窗口查看
-                    auto_scroll = true,
-                    on_close = function()
-                        java_term = nil
-                    end,
-                    on_open = function(term)
-                        vim.cmd("startinsert!")
-                        vim.api.nvim_buf_set_name(term.bufnr, "Java: " .. class)
-                    end,
-                })
-
-                java_term:open()
-            end
-
-            -- 绑定 F5（仅当前 Java 文件）
-            vim.keymap.set("n", "<F5>", save_and_run_java, {
-                buffer = 0,
-                silent = true,
-                desc = "保存并运行 Java (javac + java)",
-            })
-
-            -- 额外的 Java 快捷键（可选）
-            vim.keymap.set("n", "<leader>jo", function()
-                jdtls.organize_imports()
-            end, {
-                buffer = 0,
-                desc = "整理 imports",
-            })
+            -- 启动 JDTLS
+            jdtls.start_or_attach(config)
         end,
     },
 }

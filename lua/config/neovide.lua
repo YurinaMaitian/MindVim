@@ -11,6 +11,8 @@ vim.o.guifont = "Consolas:h23"
 
 -- 全屏启动
 vim.g.neovide_fullscreen = true
+-- 启动时最大化（比全屏更实用，保留标题栏可拖动）
+-- vim.g.neovide_maximized = true
 
 -- 刷新率设置
 vim.g.neovide_refresh_rate = 120
@@ -23,7 +25,7 @@ vim.g.neovide_remember_window_position = true
 vim.g.neovide_input_use_logo = true
 
 -- 关键：让 Neovide 不干预 IME，完全由你手动控制
-vim.g.neovide_input_ime = false
+-- vim.g.neovide_input_ime = false
 
 -- ========== 光标效果 ==========
 vim.g.neovide_cursor_animation_length = 0.08
@@ -87,3 +89,56 @@ end, { desc = "增大字体" })
 vim.keymap.set({ "n", "i" }, "<C-->", function()
     adjust_font_size(-1)
 end, { desc = "减小字体" })
+
+-- 关键：指定"透明基准色"。Neovide 会把接近这个颜色的区域做透明处理
+-- 配合上面的 transparency，实现"背景半透明、文字不透明"的效果
+vim.g.neovide_background_color = "#0f1117"
+
+-- ==========================================
+-- 3. 浮动窗口毛玻璃（Neovide 独有！）
+-- ==========================================
+-- Telescope、Noice、诊断弹窗等浮动窗口的模糊程度
+vim.g.neovide_floating_blur_amount_x = 8.0
+vim.g.neovide_floating_blur_amount_y = 8.0
+
+-- 浮动窗口阴影（增加层次感）
+vim.g.neovide_floating_shadow = true
+vim.g.neovide_floating_z_height = 10
+
+-- ==========================================
+-- IME 配置（写代码专用：默认英文，手动切中文）
+-- ==========================================
+vim.g.neovide_input_ime = true
+
+local im_select = vim.fn.stdpath("config") .. "/bin/im-select.exe"
+
+if vim.fn.executable(im_select) == 1 then
+    local ime_group = vim.api.nvim_create_augroup("ImeAuto", { clear = true })
+
+    -- 启动时强制英文（延迟 500ms 确保窗口就绪）
+    vim.api.nvim_create_autocmd("VimEnter", {
+        once = true,
+        group = ime_group,
+        callback = function()
+            vim.defer_fn(function()
+                vim.fn.system({ im_select, "1033" })
+            end, 500)
+        end,
+    })
+
+    -- 退出插入模式：保险切英文
+    vim.api.nvim_create_autocmd("InsertLeave", {
+        group = ime_group,
+        callback = function()
+            vim.fn.system({ im_select, "1033" })
+        end,
+    })
+
+    -- 退出 Neovim：切回中文
+    vim.api.nvim_create_autocmd("VimLeavePre", {
+        group = ime_group,
+        callback = function()
+            vim.fn.system({ im_select, "2052" })
+        end,
+    })
+end

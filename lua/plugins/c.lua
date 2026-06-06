@@ -2,6 +2,9 @@
 -- C/C++ F5 编译运行配置（toggleterm 基础配置在 toggleterm.lua 中）
 -- 已经把clang添加进环境变量，如果更换设备记得指定clang路径或者加至环境变量
 
+-- lua/plugins/c.lua（MSYS2 MinGW 工具链）
+-- 改动：编译器、clangd、clang-format 全部指向 MSYS2，去掉手动 -isystem
+
 local c_term = nil
 
 local function save_and_run_c()
@@ -20,12 +23,15 @@ local function save_and_run_c()
     if has_build_script then
         cmd = string.format('cd /d "%s" && build.bat', dir)
     else
-        local compiler = "clang.exe"
+        -- 优先使用 MSYS2 的 clang，自动关联 MinGW 头文件，无需手动 -isystem
+        local msys2_clang = "D:/tools/MSYS2/mingw64/bin/clang.exe"
+        local compiler = vim.fn.filereadable(msys2_clang) == 1 and msys2_clang or "clang.exe"
+
         cmd = string.format(
-            'cd /d "%s" && "%s" --target=x86_64-w64-mingw32 -isystem D:/mingw64/x86_64-w64-mingw32/include -LD:/mingw64/x86_64-w64-mingw32/lib -Wall -Wextra -g -std=c11 -o "%s" "%s" && echo [编译成功，正在运行...] && "%s"',
+            'cd /d "%s" && "%s" --target=x86_64-w64-mingw32 -Wall -Wextra -g -std=c11 -o "%s" "%s" && echo [编译成功，正在运行...] && "%s"',
             dir,
             compiler,
-            filename_noext,
+            output,
             file_clean,
             output
         )
@@ -74,6 +80,8 @@ return {
         opts = {
             servers = {
                 clangd = {
+                    -- 如果 PATH 里有多个 clangd，建议写死 MSYS2 路径避免冲突：
+                    -- cmd = { "D:/tools/MSYS2/mingw64/bin/clangd.exe", ... },
                     cmd = {
                         "clangd",
                         "--background-index",
@@ -86,11 +94,12 @@ return {
                     init_options = {
                         fallbackFlags = {
                             "--target=x86_64-w64-mingw32",
-                            "-isystem",
-                            "D:/mingw64/x86_64-w64-mingw32/include",
-                            "-isystem",
-                            "D:/mingw64/include",
                             "-std=c11",
+                            -- MSYS2 的 clangd 通常能自动发现，但显式指定更保险
+                            "-isystem",
+                            "D:/tools/MSYS2/mingw64/include",
+                            "-isystem",
+                            "D:/tools/MSYS2/mingw64/x86_64-w64-mingw32/include",
                         },
                     },
                 },
@@ -105,7 +114,8 @@ return {
             formatters_by_ft = { c = { "clang_format" }, cpp = { "clang_format" } },
             formatters = {
                 clang_format = {
-                    command = "D:/llvm/bin/clang-format.exe",
+                    -- 改用 MSYS2 的 clang-format
+                    command = "D:/tools/MSYS2/mingw64/bin/clang-format.exe",
                     args = function()
                         return {
                             "-assume-filename",

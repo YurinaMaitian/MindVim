@@ -9,8 +9,16 @@ return {
             opts.defaults = vim.tbl_deep_extend("force", opts.defaults or {}, {
                 path_display = { "absolute" },
                 file_ignore_patterns = {
-                    "node_modules", ".git/", "__pycache__/", "%.pyc$",
-                    "target/", "build/",
+                    "node_modules",
+                    ".git/",
+                    "__pycache__/",
+                    "%.pyc$",
+                    "target/",
+                    "build/",
+                },
+
+                layout_config = {
+                    prompt_position = "bottom",
                 },
             })
 

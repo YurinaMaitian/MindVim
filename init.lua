@@ -2,3 +2,13 @@
 vim.g.lazyvim_python_lsp = "basedpyright"
 require("config.lazy")
 require("config.neovide")
+require("config.colorscheme-picker")
+
+
+
+
+
+
+
+
+
