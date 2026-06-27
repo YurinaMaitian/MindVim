@@ -11,7 +11,6 @@ vim.env.CC = userenv.is_windows and "gcc" or "gcc"
 vim.g.lazyvim_python_lsp = "basedpyright"
 vim.g.lazyvim_python_ruff = false -- 暂时禁用自动 ruff，避免干扰
 
--- 你原来的其他配置...
 --缩进
 local opt = vim.opt
 opt.tabstop = 4

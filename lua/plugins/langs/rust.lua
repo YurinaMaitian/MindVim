@@ -89,18 +89,58 @@ return {
         rust_analyzer = {
           settings = {
             ["rust-analyzer"] = {
+              -- 核心：保存时自动 cargo check / clippy，立刻显示错误
+              checkOnSave = {
+                allFeatures = true,
+                allTargets = false,
+                command = "clippy", -- 用 clippy 代替 check，lint 更全
+                extraArgs = {},
+              },
               check = { command = "clippy" },
               cargo = { allFeatures = true },
               procMacro = { enable = true },
+              -- 诊断：确保开启
+              diagnostics = {
+                enable = true,
+                experimental = { enable = true },
+                disabled = {},
+                styleLints = { enable = true },
+              },
+              -- 补全增强
+              completion = {
+                autoimport = { enable = true },
+                autoself = { enable = true },
+                callable = { snippets = "fill_arguments" },
+                snippets = {
+                  custom = {
+                    -- Arc::new, Rc::new 等常用包装
+                    ["Arc::new"] = { postfix = "arc", body = "Arc::new(${receiver})", requires = "std::sync::Arc" },
+                    ["Rc::new"] = { postfix = "rc", body = "Rc::new(${receiver})", requires = "std::rc::Rc" },
+                    ["Box::new"] = { postfix = "bx", body = "Box::new(${receiver})" },
+                  },
+                },
+              },
+              -- 内联提示
               inlayHints = {
                 bindingModeHints = { enable = true },
                 chainingHints = { enable = true },
-                closingBraceHints = { enable = true },
+                closingBraceHints = { enable = true, minLines = 0 },
                 closureReturnTypeHints = { enable = "with_block" },
                 lifetimeElisionHints = { enable = "verbose" },
                 parameterHints = { enable = true },
                 reborrowHints = { enable = "always" },
                 typeHints = { enable = true },
+                discriminantHints = { enable = "always" },
+                expressionAdjustmentHints = { enable = "always" },
+              },
+              -- 辅助功能
+              assist = {
+                importEnforceGranularity = true,
+                importPrefix = "by_self",
+              },
+              -- 输入时即时检查（无需保存）
+              typing = {
+                autoClosingAngleBrackets = { enable = true },
               },
             },
           },

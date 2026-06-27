@@ -14,8 +14,10 @@ local function save_and_run_js()
 
   local cmd
   if ext == "ts" or ext == "tsx" then
-    -- 优先用 ts-node，否则用 tsx，最后退到 npx ts-node
-    if vim.fn.executable("tsx") == 1 then
+    -- 优先级: bun (原生 TS) > tsx > ts-node > npx
+    if vim.fn.executable("bun") == 1 then
+      cmd = string.format('bun run "%s"', file_clean)
+    elseif vim.fn.executable("tsx") == 1 then
       cmd = string.format('tsx "%s"', file_clean)
     elseif vim.fn.executable("ts-node") == 1 then
       cmd = string.format('ts-node "%s"', file_clean)
@@ -23,7 +25,12 @@ local function save_and_run_js()
       cmd = string.format('npx ts-node "%s"', file_clean)
     end
   else
-    cmd = string.format('node "%s"', file_clean)
+    -- JS: bun / node
+    if vim.fn.executable("bun") == 1 then
+      cmd = string.format('bun run "%s"', file_clean)
+    else
+      cmd = string.format('node "%s"', file_clean)
+    end
   end
 
   local Terminal = require("toggleterm.terminal").Terminal

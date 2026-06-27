@@ -57,4 +57,13 @@ return {
     -- ============================================
     -- 默认配色方案（启动时自动应用）
     default_colorscheme = "tokyonight-storm",
+
+    -- ============================================
+    -- 8. 终端 Shell（留空自动检测）
+    -- ============================================
+    shell = nil,
+    -- shell = "pwsh.exe",          -- Windows (PowerShell 7)
+    -- shell = "powershell.exe",    -- Windows (PowerShell 5)
+    -- shell = "/usr/bin/zsh",      -- Linux (zsh)
+    -- shell = "/usr/bin/fish",     -- Linux (fish)
 }

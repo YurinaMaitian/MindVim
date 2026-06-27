@@ -460,21 +460,36 @@ function M.open_browser_cmd(file)
 end
 
 --- 获取默认 shell（用于 toggleterm）
----@return string|nil
+--- 可在 env.lua 中设置 shell 覆盖自动检测
+---@return string|nil 返回 nil 则使用 Neovim 默认
 function M.get_shell()
+  -- 0) 用户手动指定（env.lua）
+  local manual = M.get_env("shell", nil)
+  if manual then return manual end
+
   if M.is_windows then
-    -- Windows: 使用 PowerShell 或 cmd
+    -- Windows: 优先 pwsh (PS 7+)，其次 powershell (5.1)，最后默认
+    if vim.fn.executable("pwsh.exe") == 1 then
+      return "pwsh.exe"
+    end
     if vim.fn.executable("powershell.exe") == 1 then
       return "powershell.exe"
     end
-    return nil -- 使用 Neovim 默认
+    return nil -- nil = Neovim 默认 (cmd.exe)
   else
-    -- Linux/macOS: 使用用户默认 shell
+    -- Linux/macOS: 优先 $SHELL 环境变量
     local sh = os.getenv("SHELL")
     if sh and vim.fn.executable(sh) == 1 then
       return sh
     end
-    return nil -- 使用 Neovim 默认
+    -- fallback: 检测常见 shell
+    local candidates = { "/bin/bash", "/usr/bin/zsh", "/usr/bin/fish", "/bin/sh" }
+    for _, c in ipairs(candidates) do
+      if vim.fn.executable(c) == 1 then
+        return c
+      end
+    end
+    return nil -- nil = Neovim 默认
   end
 end
 

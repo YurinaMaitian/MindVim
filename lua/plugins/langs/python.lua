@@ -19,21 +19,23 @@ local ruff_cmd = ruff_exe and { ruff_exe, "server" } or nil
 
 -- 构建 extraPaths
 local function get_extra_paths()
-  local paths = {}
-  -- 如果检测到 conda，添加 site-packages
-  if basedpyright_exe then
-    local conda_base = vim.fn.fnamemodify(basedpyright_exe, ":h:h:h")
-    if userenv.is_windows then
-      table.insert(paths, conda_base .. "/Lib/site-packages")
-    else
-      -- Linux conda: <env>/lib/python3.x/site-packages/
-      local py_ver = vim.fn.system({ python_exe, "-c", "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" }):gsub("%s+", "")
-      if py_ver and py_ver ~= "" then
-        table.insert(paths, conda_base .. "/lib/python" .. py_ver .. "/site-packages")
-      end
+    local paths = {}
+    -- 如果检测到 conda，添加 site-packages
+    if basedpyright_exe then
+        local conda_base = vim.fn.fnamemodify(basedpyright_exe, ":h:h:h")
+        if userenv.is_windows then
+            table.insert(paths, conda_base .. "/Lib/site-packages")
+        else
+            -- Linux conda: <env>/lib/python3.x/site-packages/
+            local py_ver = vim.fn
+                .system({ python_exe, "-c", "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" })
+                :gsub("%s+", "")
+            if py_ver and py_ver ~= "" then
+                table.insert(paths, conda_base .. "/lib/python" .. py_ver .. "/site-packages")
+            end
+        end
     end
-  end
-  return paths
+    return paths
 end
 
 return {

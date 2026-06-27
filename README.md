@@ -36,6 +36,7 @@
 - Neovim ≥ 0.10
 - 可选：[Nerd Font](https://www.nerdfonts.com/)（图标显示）
 - 可选：`fd`、`ripgrep`（Telescope 搜索）
+- 可选：[bun](https://bun.sh/)（JS/TS 运行，比 node 更快）
 
 ```bash
 # Linux / macOS
@@ -67,14 +68,19 @@ git clone https://github.com/YurinaMaitian/MyNeovim.git ~/.config/nvim
 
 ```lua
 return {
-  proxy             = nil,                              -- 代理地址
-  python_conda_env  = "py310",                          -- conda 环境名
-  default_project_dir = "~/Projects",                   -- 启动时的默认目录
-  jdk_path          = "/usr/lib/jvm/java-21-openjdk",   -- JDK 路径（留空自动检测）
-  default_colorscheme = "tokyonight-storm",             -- 默认主题
+  proxy               = nil,                              -- 代理地址
+  python_conda_env    = "py310",                          -- conda 环境名
+  default_project_dir = "~/Projects",                     -- 启动时的默认目录
+  jdk_path            = "/usr/lib/jvm/java-21-openjdk",   -- JDK 路径（留空自动检测）
+  default_colorscheme = "tokyonight-storm",               -- 默认主题
+  shell               = "/usr/bin/zsh",                   -- 终端 shell（留空自动检测）
 }
 ```
 
+> **自动检测逻辑：**
+> - Windows：`pwsh.exe` → `powershell.exe` → 系统默认
+> - Linux/macOS：`$SHELL` → zsh → fish → bash → sh → 系统默认
+>
 > 大多数设置留空即可自动检测。只有检测不到时才需要手动填。
 
 ---
@@ -86,7 +92,7 @@ return {
 | **Python** | basedpyright + ruff | ruff | `python -i`（REPL 模式）|
 | **C / C++** | clangd | clang-format | 编译器编译 + 运行 |
 | **Java** | jdtls | — | javac 编译 + java 运行 |
-| **TypeScript / JS** | vtsls | prettier | node / tsx 运行 |
+| **TypeScript / JS** | vtsls | prettier | bun / node / tsx 运行 |
 | **Rust** | rust-analyzer | rustfmt | cargo run / rustc |
 | **Vue3** | volar | prettier | npm run dev |
 | **HTML / CSS** | html + cssls | prettier | 浏览器打开 |
@@ -103,9 +109,16 @@ return {
 | 按键 | 功能 |
 |------|------|
 | <kbd>Ctrl</kbd>+<kbd>h</kbd> / <kbd>j</kbd> / <kbd>k</kbd> / <kbd>l</kbd> | 窗口间移动 |
-| <kbd>Alt</kbd>+<kbd>h</kbd> / <kbd>l</kbd> | 上一个 / 下一个 Buffer |
+| <kbd>Shift</kbd>+<kbd>h</kbd> / <kbd>l</kbd> | 上一个 / 下一个 Buffer |
 | <kbd>Ctrl</kbd>+<kbd>↑ ↓ ← →</kbd> | 调整窗口大小 |
 | <kbd>Space</kbd> `sv` / `sh` | 垂直 / 水平分屏 |
+
+### 文本操作
+
+| 按键 | 模式 | 功能 |
+|------|------|------|
+| <kbd>Alt</kbd>+<kbd>j</kbd> / <kbd>k</kbd> | Visual | 整行下移 / 上移 |
+| <kbd>Alt</kbd>+<kbd>h</kbd> / <kbd>l</kbd> | Visual | 选中文本左移 / 右移（字符级平移）|
 
 ### LSP / 代码导航
 
@@ -236,7 +249,7 @@ everforest · poimandres · github-dark · monet
 - Python：`python3 --version`
 - C/C++：`gcc --version` 或 `clang --version`
 - Java：`javac --version` 和 `java --version`
-- JS/TS：`node --version`
+- JS/TS：`node --version`（或 `bun --version`）
 - Rust：`cargo --version`
 - LaTeX：`latexmk --version`
 </details>
@@ -247,6 +260,20 @@ everforest · poimandres · github-dark · monet
 1. Clone 仓库
 2. 根据新电脑环境编辑 `env.lua`
 3. 启动 nvim，插件会自动安装
+</details>
+
+<details>
+<summary><b>如何更换终端 Shell？</b></summary>
+
+编辑 `env.lua`，设置 `shell` 字段：
+
+```lua
+shell = "pwsh.exe",       -- Windows PowerShell 7
+shell = "/usr/bin/fish",  -- Linux fish
+shell = nil,              -- 留空 = 自动检测（推荐）
+```
+
+重启 nvim 生效。
 </details>
 
 <details>

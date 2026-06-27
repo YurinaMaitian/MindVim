@@ -1,8 +1,8 @@
--- lua/plugins/c.lua
+-- lua/plugins/langs/c.lua
 -- C/C++ 开发环境：跨平台自动检测工具链
 -- Windows: 自动检测 MSYS2，否则使用 PATH 中的 clang/gcc
 -- Linux/macOS: 使用系统 gcc/clang
--- 自定义路径请编辑 lua/config/userenv.lua
+-- 自定义路径请编辑 nvim 根目录下的 env.lua
 
 local userenv = require("config.userenv")
 
@@ -11,10 +11,7 @@ local userenv = require("config.userenv")
 -- =============================================================================
 
 --- 检测项目中的构建脚本
----@param dir string 项目目录
----@return string|nil
 local function find_build_script(dir)
-  -- Windows: build.bat, Linux/macOS: build.sh / Makefile / CMakeLists.txt
   local scripts = userenv.is_windows
       and { "build.bat" }
       or { "build.sh", "Makefile", "makefile", "CMakeLists.txt" }
@@ -29,15 +26,10 @@ local function find_build_script(dir)
 end
 
 --- 生成单文件编译命令
----@param dir string 项目目录
----@param file string 源文件路径
----@param output string 输出文件路径
----@return string
 local function compile_command(dir, file, output)
   local compiler = userenv.detect_c_compiler()
 
   if userenv.is_windows then
-    -- Windows: 使用 --target=x86_64-w64-mingw32 以使用 MinGW 运行时
     return string.format(
       '%s && "%s" --target=x86_64-w64-mingw32 -Wall -Wextra -g -std=c23 -o "%s" "%s" && echo [编译成功，正在运行...] && "%s"',
       userenv.cd_command(dir),
@@ -47,7 +39,6 @@ local function compile_command(dir, file, output)
       output
     )
   else
-    -- Linux/macOS: 标准编译
     return string.format(
       '%s && %s -Wall -Wextra -g -std=c11 -o "%s" "%s" && echo [编译成功，正在运行...] && "%s"',
       userenv.cd_command(dir),
@@ -79,17 +70,14 @@ local function save_and_run_c()
   local build_script = find_build_script(dir)
 
   if build_script then
-    -- 有构建脚本，使用它
     if build_script == "Makefile" or build_script == "makefile" then
       cmd = userenv.cd_command(dir) .. " && make && echo [编译成功] && ./" .. filename_noext .. ext
     elseif build_script == "CMakeLists.txt" then
-      -- 简单的 cmake 构建
       local build_dir = dir_clean .. "/build"
       cmd = userenv.cd_command(dir)
         .. " && mkdir -p build && cd build && cmake .. && make && echo [编译成功] && ./"
         .. filename_noext .. ext
     else
-      -- build.sh / build.bat
       cmd = userenv.cd_command(dir) .. " && ./" .. build_script
       if userenv.is_windows then
         cmd = userenv.cd_command(dir) .. " && " .. build_script
@@ -131,7 +119,7 @@ vim.api.nvim_create_autocmd("FileType", {
       "n",
       "<F5>",
       save_and_run_c,
-      { buffer = true, silent = true, desc = "保存并编译运行 C/C++" }
+      { buffer = true, silent = true, desc = "编译运行 C/C++" }
     )
   end,
 })
@@ -146,25 +134,33 @@ return {
     opts = {
       servers = {
         clangd = {
-          cmd = {
-            userenv.detect_clangd(),
-            "--background-index",
-            "--clang-tidy",
-            "--header-insertion=iwyu",
-            "--completion-style=bundled",
-            "--pch-storage=memory",
-            "--compile_args_from=filesystem",
-          },
+          -- 不覆盖 cmd：让 mason-lspconfig 管理 clangd 路径。
+          -- 仅当用户通过 env.lua 或 MSYS2 指定了自定义路径时才设置 cmd。
+          cmd = (function()
+            local detected = userenv.detect_clangd()
+            -- 短名称 = 在 PATH 中（包括 Mason 管理），不覆盖
+            if detected == "clangd" or detected == "clangd.exe" then
+              return nil
+            end
+            -- 完整路径 = 用户手动指定或 MSYS2 自动检测
+            return {
+              detected,
+              "--background-index",
+              "--clang-tidy",
+              "--header-insertion=iwyu",
+              "--completion-style=bundled",
+              "--pch-storage=memory",
+              "--compile_args_from=filesystem",
+              "--log=error",
+            }
+          end)(),
           init_options = {
             fallbackFlags = (function()
               local flags = {}
               if userenv.is_windows then
                 table.insert(flags, "--target=x86_64-w64-mingw32")
               end
-              -- C23 原生支持 true/false/bool 关键字，无需 #include <stdbool.h>
-              -- 如果编译器较老不支持 C23，改回 -std=c11 并手动 #include <stdbool.h>
               table.insert(flags, "-std=c23")
-              -- 平台特定的系统头文件路径
               local includes = userenv.get_c_system_includes()
               for _, inc in ipairs(includes) do
                 table.insert(flags, "-isystem")

@@ -22,15 +22,21 @@ local function save_and_open_browser()
     end
 end
 
--- 前端文件统一缩进 + F5
+-- 前端文件统一缩进（所有前端类型）
 vim.api.nvim_create_autocmd("FileType", {
-    pattern = { "html", "vue", "css", "javascript", "typescript" },
+    pattern = { "html", "css", "vue", "javascript", "javascriptreact", "typescript", "typescriptreact" },
     callback = function()
         vim.opt_local.tabstop = 2
         vim.opt_local.shiftwidth = 2
         vim.opt_local.expandtab = true
         vim.opt_local.softtabstop = 2
+    end,
+})
 
+-- F5 仅对 HTML 文件：浏览器打开（JS/TS/Vue 有各自的 F5 处理器）
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = { "html", "htm" },
+    callback = function()
         vim.keymap.set("n", "<F5>", save_and_open_browser, {
             buffer = true,
             silent = true,
