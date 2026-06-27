@@ -1,210 +1,262 @@
-# Neovim 快捷键速查表
+<p align="center">
+  <img src="https://raw.githubusercontent.com/LazyVim/LazyVim/main/lazyvim-logo.png" width="180" alt="LazyVim Logo" />
+</p>
 
--> 环境：LazyVim + Neovide (Windows)  
--> Leader 键：`Space`
+<h1 align="center">🌙 MindVim</h1>
 
----
+<p align="center">
+  <b>一套配置走天下的 Neovim 开发环境</b><br>
+  基于 LazyVim · 28 款主题 · 多语言开箱即用 · 跨平台自适应
+</p>
 
-## 一、窗口与 Buffer 导航
-
-- `Ctrl+h` — 跳到左窗口
-- `Ctrl+j` — 跳到下窗口
-- `Ctrl+k` — 跳到上窗口
-- `Ctrl+l` — 跳到右窗口
-- `Alt+h` — 上一个 Buffer
-- `Alt+l` — 下一个 Buffer
-- `Alt+Shift+h` — Buffer 向左移动
-- `Alt+Shift+l` — Buffer 向右移动
-- `Space sv` — 垂直分屏
-- `Space sh` — 水平分屏
-- `Space wm` — 最大化当前窗口
-- `Space w=` — 所有窗口等分
-- `Space wd` — 关闭当前窗口
+<p align="center">
+  <img src="https://img.shields.io/badge/Neovim-0.10%2B-blue?logo=neovim" />
+  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey" />
+  <img src="https://img.shields.io/badge/LazyVim-powered-8a2be2" />
+  <img src="https://img.shields.io/badge/License-Apache%202.0-green" />
+</p>
 
 ---
 
-## 二、窗口大小调整（按住连续生效）
+## ✨ 亮点
 
-- `Ctrl+Up` — 窗口增高
-- `Ctrl+Down` — 窗口减高
-- `Ctrl+Left` — 窗口减宽
-- `Ctrl+Right` — 窗口增宽
-- `Ctrl+w` 然后 `+` — 增高 1 行（可前缀数字，如 `5 Ctrl+w +`）
-- `Ctrl+w` 然后 `-` — 减高 1 行
-- `Ctrl+w` 然后 `&gt;` — 增宽 1 列
-- `Ctrl+w` 然后 `&lt;` — 减宽 1 列
-- `Ctrl+w` 然后 `_` — 高度最大化
-- `Ctrl+w` 然后 `|` — 宽度最大化
+- **一套配置走天下** — Windows / Linux / macOS 无需分别配置，工具链路径自动检测
+- **只需改一个文件** — 根目录的 `env.lua` 是唯一需要手动编辑的配置
+- **F5 一键运行** — C/C++、Python、Java、JS/TS、Rust、LaTeX、Vue3 按下即编译运行
+- **28 款内置主题** — 一键切换，支持透明/磨砂效果
+- **调试即用** — nvim-dap 预配 Python / C++ / JS / Java / Rust 调试器
+- **LazyVim 生态** — 继承 LazyVim 全部功能，按需扩展
 
 ---
 
-## 三、文本对象（精准选择代码块）
+## 🚀 快速上手
 
-### 原生文本对象（所有文件通用）
+### 前置要求
 
-- `viw` — 选中当前单词
-- `vi"` / `va"` — 选中引号内 / 含引号
-- `vi(` / `va(` — 选中括号内 / 含括号
-- `vi{` / `va{` — 选中花括号内 / 含花括号
-- `vip` / `vap` — 选中当前段落（空行分隔）
-- `vit` / `vat` — 选中 HTML/XML 标签内 / 含标签
+- Neovim ≥ 0.10
+- 可选：[Nerd Font](https://www.nerdfonts.com/)（图标显示）
+- 可选：`fd`、`ripgrep`（Telescope 搜索）
 
-&gt; **记忆**：`i` = inner（内部），`a` = around（含边界）
+```bash
+# Linux / macOS
+sudo apt install fd-find ripgrep   # Debian/Ubuntu
+brew install fd ripgrep             # macOS
 
-### Treesitter 文本对象（代码专用）
+# Windows
+scoop install fd ripgrep
+```
 
-- `vaf` — 选中整个函数（含函数名和参数）
-- `vif` — 选中函数内部（不含函数名和花括号）
-- `vac` — 选中整个类
-- `vic` — 选中类内部
-- `vaa` — 选中参数（含逗号）
-- `via` — 选中参数值（不含逗号）
+### 安装
 
-&gt; 配合操作：`d` 删除、`y` 复制、`&gt;` 缩进
+```bash
+# 备份旧配置（如果有）
+mv ~/.config/nvim ~/.config/nvim.bak
 
----
+# Clone 配置
+git clone https://github.com/YurinaMaitian/MyNeovim.git ~/.config/nvim
 
-## 四、代码导航与 LSP
+# Windows 用户 clone 到：
+# git clone https://github.com/YurinaMaitian/MyNeovim.git %LOCALAPPDATA%\nvim
+```
 
-- `gd` — 跳转到定义
-- `gD` — 跳转到声明
-- `gr` — 查找引用（Telescope 列表）
-- `gI` — 跳转到实现
-- `K` — 悬停文档（Hover）
-- `Space rn` — 重命名符号（LSP）
-- `Space cr` — 重命名符号（备选）
-- `Space ca` — Code Action（意图动作/修复）
-- `Alt+Enter` — Code Action（备选）
-- `[d` — 上一个诊断错误
-- `]d` — 下一个诊断错误
-- `Space cd` — 显示当前行诊断详情
-- `Space lr` — 重启 LSP
+首次启动时会自动安装 lazy.nvim 和所有插件，等待片刻即可。
 
----
+### 配置（可选）
 
-## 五、跳转与位置恢复
+打开配置根目录下的 **`env.lua`**，按需修改：
 
-- `Ctrl+o` — 跳到上一个跳转位置（Older）
-- `Ctrl+i` — 跳到下一个跳转位置（Newer）
-- `gi` — 跳到上次插入模式的位置
-- `g;` — 跳到上次修改的位置
-- `g,` — 反向跳修改位置（`g;` 之后用）
-- `` ` `` — 跳到上次修改的精确位置
-- `''` — 跳到上次跳转前的位置
+```lua
+return {
+  proxy             = nil,                              -- 代理地址
+  python_conda_env  = "py310",                          -- conda 环境名
+  default_project_dir = "~/Projects",                   -- 启动时的默认目录
+  jdk_path          = "/usr/lib/jvm/java-21-openjdk",   -- JDK 路径（留空自动检测）
+  default_colorscheme = "tokyonight-storm",             -- 默认主题
+}
+```
+
+> 大多数设置留空即可自动检测。只有检测不到时才需要手动填。
 
 ---
 
-## 六、搜索与批量替换
+## 🗺️ 支持的语言
 
-- `*` — 向下搜索光标下单词，并高亮所有匹配
-- `#` — 向上搜索光标下单词
-- `n` — 下一个匹配
-- `N` — 上一个匹配
-- `cgn` — 修改下一个匹配（配合 `n` 批量改）
-- `.` — 重复上一次修改（`cgn` 后按 `n` + `.` 神技）
-- `:%s/old/new/g` — 全局替换
-- `:%s/old/new/gc` — 全局替换（带确认）
-
-&gt; **批量改名神技**：`*` → `N`（回到原位）→ `cgn` 改第一个 → `Esc` → `n` 跳到下一个 → `.` 重复
-
----
-
-## 七、注释与格式化
-
-- `gcc` — 注释/取消注释当前行（Normal）
-- `gc` — 注释选区（Visual）
-- `gcip` — 注释当前段落
-- `&gt;&gt;` / `&lt;&lt;` — 当前行增/减缩进
-- `&gt;ap` / `&lt;ap` — 整个段落增/减缩进
-- `=ap` — 自动格式化段落
-- `gg=G` — 全文件自动缩进
-- `Space cf` — LSP 格式化代码
-- `Space cF` — 格式化并保存
+| 语言 | LSP | 格式化 | F5 运行 |
+|------|-----|--------|---------|
+| **Python** | basedpyright + ruff | ruff | `python -i`（REPL 模式）|
+| **C / C++** | clangd | clang-format | 编译器编译 + 运行 |
+| **Java** | jdtls | — | javac 编译 + java 运行 |
+| **TypeScript / JS** | vtsls | prettier | node / tsx 运行 |
+| **Rust** | rust-analyzer | rustfmt | cargo run / rustc |
+| **Vue3** | volar | prettier | npm run dev |
+| **HTML / CSS** | html + cssls | prettier | 浏览器打开 |
+| **LaTeX** | texlab | — | latexmk 编译 → 浏览器查看 PDF |
 
 ---
 
-## 八、列编辑（Visual Block）
+## ⌨️ 快捷键
 
-- `Ctrl+v` → `j/k` → `I` → 输入 → `Esc` — 在选区前方插入（多行加前缀）
-- `Ctrl+v` → `j/k` → `A` → 输入 → `Esc` — 在选区后方追加（多行加后缀）
-- `Ctrl+v` → `j/k` → `c` → 输入 → `Esc` — 删除选区并替换（改列内容）
-- `Ctrl+v` → `j/k` → `C` → 输入 → `Esc` — 删除选区到行尾并替换
-- `Ctrl+v` → `j/k` → `r{char}` — 用单个字符替换选区（立即生效）
+> Leader 键：<kbd>Space</kbd>
 
-&gt; **注意**：`I`/`A`/`c`/`C` 输入时只显示第一行变化，按 `Esc` 后同步到所有行。
+### 窗口与 Buffer
+
+| 按键 | 功能 |
+|------|------|
+| <kbd>Ctrl</kbd>+<kbd>h</kbd> / <kbd>j</kbd> / <kbd>k</kbd> / <kbd>l</kbd> | 窗口间移动 |
+| <kbd>Alt</kbd>+<kbd>h</kbd> / <kbd>l</kbd> | 上一个 / 下一个 Buffer |
+| <kbd>Ctrl</kbd>+<kbd>↑ ↓ ← →</kbd> | 调整窗口大小 |
+| <kbd>Space</kbd> `sv` / `sh` | 垂直 / 水平分屏 |
+
+### LSP / 代码导航
+
+| 按键 | 功能 |
+|------|------|
+| `gd` | 跳转到定义 |
+| `gr` | 查找引用 |
+| `K` | 悬停文档 |
+| <kbd>Space</kbd> `rn` | 重命名符号 |
+| <kbd>Space</kbd> `ca` | Code Action |
+| <kbd>Space</kbd> `lr` | 重启 LSP |
+| `[d` / `]d` | 上一个 / 下一个诊断 |
+
+### 搜索（Telescope）
+
+| 按键 | 功能 |
+|------|------|
+| <kbd>Space</kbd> `ff` | 查找文件 |
+| <kbd>Space</kbd> `fg` | 全局文本搜索 |
+| <kbd>Space</kbd> `fb` | 已打开的 Buffer |
+| <kbd>Space</kbd> `fr` | 最近文件 |
+| <kbd>Space</kbd> `ss` | 当前文件大纲 |
+
+### Git
+
+| 按键 | 功能 |
+|------|------|
+| <kbd>Space</kbd> `gg` | LazyGit |
+| <kbd>Space</kbd> `gf` | 当前文件 Git 历史 |
+| <kbd>Space</kbd> `gb` | Git Blame |
+
+### 终端 / 运行
+
+| 按键 | 功能 |
+|------|------|
+| <kbd>Ctrl</kbd>+<kbd>\\</kbd> | 切换终端 |
+| <kbd>F5</kbd> | 编译运行当前文件 |
+| <kbd>Ctrl</kbd>+<kbd>s</kbd> | 保存文件 |
+
+### 调试（DAP）
+
+| 按键 | 功能 |
+|------|------|
+| <kbd>F9</kbd> | 切换断点 |
+| <kbd>F10</kbd> | 单步跳过 |
+| <kbd>F11</kbd> | 单步进入 |
+| <kbd>Shift</kbd>+<kbd>F11</kbd> | 单步跳出 |
+| <kbd>Space</kbd> `dc` | 继续 |
+| <kbd>Space</kbd> `du` | 切换调试面板 |
+
+### 文本对象（Treesitter）
+
+| 按键 | 选中范围 |
+|------|---------|
+| `vaf` / `vif` | 整个函数 / 函数内部 |
+| `vac` / `vic` | 整个类 / 类内部 |
+| `vaa` / `via` | 参数（含逗号）/ 参数值 |
+
+### 其他
+
+| 按键 | 功能 |
+|------|------|
+| `gcc` | 注释/取消注释当前行 |
+| <kbd>Space</kbd> `cf` | LSP 格式化代码 |
+| <kbd>Space</kbd> `uC` | 切换配色方案 |
+| <kbd>Space</kbd> `ul` | Lazy 插件管理 |
+| <kbd>Space</kbd> `co` | 代码大纲（Aerial）|
+| `ys` / `cs` / `ds` | Surround 添加/修改/删除 |
 
 ---
 
-## 九、括号与结构跳转
+## 📦 插件精选
 
-- `%` — 跳转到匹配括号（`()`、`{}`、`[]`）
-- `[(` / `])` — 上一个 / 下一个未匹配的 `(`
-- `[{` / `]}` — 上一个 / 下一个未匹配的 `{`
-- `[m` / `]m` — 上一个 / 下一个函数开头
-- `[M` / `]M` — 上一个 / 下一个函数结尾
+基于 [LazyVim](https://www.lazyvim.org/) 生态，额外整合：
 
----
-
-## 十、文件与搜索（Telescope）
-
-- `Space ff` — 查找文件（当前项目）
-- `Space fg` — 全局文本搜索（live grep）
-- `Space fb` — 查找已打开的 Buffer
-- `Space fr` — 最近文件
-- `Space ss` — 当前文件符号（函数/变量列表）
-- `Space sS` — 工作区符号
-- `Space fd` — 查找 D 盘文件（自定义）
-- `Space cd` — 切换工作目录
+| 类别 | 插件 |
+|------|------|
+| **编辑** | nvim-surround, rainbow-delimiters, nvim-ts-autotag, nvim-autopairs |
+| **UI** | snacks.nvim, noice.nvim, aerial.nvim, neo-tree.nvim |
+| **终端** | toggleterm.nvim（F5 运行各语言 + REPL） |
+| **调试** | nvim-dap + nvim-dap-ui + nvim-dap-virtual-text |
+| **Git** | lazygit.nvim |
+| **透明** | transparent.nvim（多主题透明适配） |
 
 ---
 
-## 十一、Git
+## 🎨 内置主题
 
-- `Space gg` — 打开 LazyGit
-- `Space gh` — 查看当前 hunk
-- `Space gH` — 预览 hunk
-- `Space gb` — Git blame 当前行
-- `Space gB` — Git blame 整个文件
+tokyonight (3) · catppuccin (3) · kanagawa (3) · onedark (3) · nightfox (3)  
+gruvbox (2) · cyberdream (2) · material (2) · rose-pine (2) · dracula  
+everforest · poimandres · github-dark · monet
 
----
-
-## 十二、终端与运行
-
-- `Ctrl+\` — 切换 ToggleTerm 终端
-- `F5` — 运行当前文件（C/Java/Python）
-- `Space ft` — 打开浮动终端
+<kbd>Space</kbd> `uC` 打开主题选择器，实时预览切换。
 
 ---
 
-## 十三、其他实用
+## 📁 目录结构
 
-- `Ctrl+a` / `Ctrl+x` — 光标下数字增 / 减
-- `ys` / `cs` / `ds` — 添加 / 修改 / 删除 surround（引号/括号）
-- `Ctrl+s` — 保存文件
-- `Ctrl+=` / `Ctrl+-` — 增大 / 减小字体（Neovide）
-- `Space un` — 查看通知历史（Noice）
-- `Space ul` — 打开 Lazy 插件管理
-- `Space cm` — 打开 Mason（LSP 管理）
-- `Space uC` — 切换配色方案
-- `q` — 关闭浮窗（help、Telescope、诊断等）
-
----
-
-## 十四、命令行与历史
-
-- `:` — 进入 Ex 命令行
-- `/` / `?` — 向下 / 向上搜索
-- `Ctrl+f`（在 `:` 模式下）— 打开命令历史窗口
-- `Ctrl+f`（在 `/` 模式下）— 打开搜索历史窗口
-- `Ctrl+c` — 关闭命令行窗口
+```
+~/.config/nvim/
+├── env.lua                 ← 你唯一需要编辑的文件
+├── init.lua                ← 入口
+├── lua/
+│   ├── config/             ← 核心配置
+│   │   └── userenv.lua     ← 环境自适应引擎
+│   └── plugins/
+│       ├── editor/         ← 编辑器体验
+│       ├── langs/          ← 语言支持（每语言一个文件）
+│       └── tools/          ← 外部工具集成
+```
 
 ---
 
-## 记忆优先级（建议先熟记）
+## 🔧 常见问题
 
-1. **窗口**：`Ctrl+hjkl` + `Alt+hl` + `Ctrl+方向键`
-2. **选择**：`viw` / `vi"` / `vaf` / `vif`
-3. **跳转**：`gd` + `Ctrl+o` / `gi` / `g;`
-4. **搜索替换**：`*` + `cgn` + `.`
-5. **注释**：`gcc` / `gc`
-6. **列编辑**：`Ctrl+v` + `I` / `c`
+<details>
+<summary><b>某语言的 LSP 没有启动？</b></summary>
+
+检查 Mason 是否已安装对应的 LSP：<kbd>Space</kbd> `cm` 打开 Mason，按 `2` 进入 LSP 列表，手动安装。
+
+也可在终端检查：`which clangd` / `which rust-analyzer` 等。
+</details>
+
+<details>
+<summary><b>F5 运行报错？</b></summary>
+
+确保编译器/运行时在 PATH 中：
+- Python：`python3 --version`
+- C/C++：`gcc --version` 或 `clang --version`
+- Java：`javac --version` 和 `java --version`
+- JS/TS：`node --version`
+- Rust：`cargo --version`
+- LaTeX：`latexmk --version`
+</details>
+
+<details>
+<summary><b>如何迁移到另一台电脑？</b></summary>
+
+1. Clone 仓库
+2. 根据新电脑环境编辑 `env.lua`
+3. 启动 nvim，插件会自动安装
+</details>
+
+<details>
+<summary><b>如何更新插件？</b></summary>
+
+<kbd>Space</kbd> `ul` → `S`（Sync），或 `U`（Update all）。
+</details>
+
+---
+
+## 📄 License
+
+Apache 2.0 © [YurinaMaitian](https://github.com/YurinaMaitian)
