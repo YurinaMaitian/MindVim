@@ -3,13 +3,16 @@
 -- 前置：fd 和 rg 已加入系统 PATH
 -- 前置：treesitter 的 html/css/vue/js/ts parser 已安装
 
+local userenv = require("config.userenv")
+
 local function save_and_open_browser()
     vim.cmd("write")
     local file = vim.fn.expand("%:p")
     local ext = vim.fn.expand("%:e")
 
     if ext == "html" or ext == "htm" then
-        local cmd = string.format('start "" "%s"', file)
+        -- 平台自适应的浏览器打开命令
+        local cmd = userenv.open_browser_cmd(file)
         vim.fn.jobstart(cmd, { detach = true })
         print("已用浏览器打开: " .. vim.fn.expand("%:t"))
     elseif ext == "vue" then
@@ -66,7 +69,7 @@ return {
         event = "InsertEnter",
         config = function()
             require("nvim-autopairs").setup({
-                check_ts = true, -- 启用 treesitter 支持
+                check_ts = true,
                 ts_config = {
                     html = { "string", "attribute_value" },
                     vue = { "string", "attribute_value" },
@@ -81,11 +84,9 @@ return {
     {
         "nvim-treesitter/nvim-treesitter",
         opts = function(_, opts)
-            -- 确保 indent 开启（这是回车展开的前提）
             opts.indent = opts.indent or {}
             opts.indent.enable = true
 
-            -- 安装前端 parser
             opts.ensure_installed = opts.ensure_installed or {}
             vim.list_extend(opts.ensure_installed, {
                 "html",
@@ -95,7 +96,6 @@ return {
                 "typescript",
             })
 
-            -- 关键：确保 highlight 也开启（autotag 依赖它）
             opts.highlight = opts.highlight or {}
             opts.highlight.enable = true
         end,

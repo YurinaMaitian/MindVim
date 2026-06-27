@@ -1,3 +1,9 @@
+-- lua/plugins/java.lua
+-- Java 开发环境：自动检测 JDK 和 JDTLS 路径
+-- 手动指定路径请编辑 lua/config/userenv.lua
+
+local userenv = require("config.userenv")
+
 return {
     {
         "mfussenegger/nvim-jdtls",
@@ -7,9 +13,23 @@ return {
             local jdtls = require("jdtls")
             local Terminal = require("toggleterm.terminal").Terminal
 
-            -- 【确认】改成你实际安装的 JDK 路径
-            local jdk_path = "C:\\Program Files\\Microsoft\\jdk-21.0.11.10-hotspot"
-            local jdtls_path = "D:\\jdtls"
+            -- 自动检测 JDK 和 JDTLS
+            local jdk_path = userenv.detect_jdk()
+            local jdtls_path = userenv.detect_jdtls()
+
+            -- 启动时检查必要组件
+            if not jdk_path then
+                vim.notify(
+                    "未找到 JDK，请在 lua/config/userenv.lua 中手动指定 M.java.jdk_path",
+                    vim.log.levels.WARN
+                )
+            end
+            if not jdtls_path then
+                vim.notify(
+                    "未找到 JDTLS，请在 lua/config/userenv.lua 中手动指定 M.java.jdtls_path",
+                    vim.log.levels.WARN
+                )
+            end
 
             local java_term = nil
 
@@ -17,8 +37,7 @@ return {
             local function save_and_run_java()
                 local bufnr = vim.api.nvim_get_current_buf()
 
-                -- 用 noautocmd write 保存，绕过 LazyVim 的 format-on-save。
-                -- JDTLS 初始化/繁忙时格式化容易 timeout，应用部分编辑后还可能损坏文件。
+                -- 用 noautocmd write 保存，绕过 LazyVim 的 format-on-save
                 vim.cmd("noautocmd write")
 
                 -- 延迟到写入完成后再开终端，避免焦点切换和 LSP 请求竞争
@@ -29,22 +48,35 @@ return {
 
                     -- 按当前文件所在目录命名输出目录，避免跨项目冲突
                     local project_name = vim.fn.fnamemodify(dir, ":p:h:t")
-                    local run_output_dir = vim.fn.stdpath("cache")
-                        .. "\\java-run\\"
-                        .. project_name
+                    local run_output_dir = userenv.normalize_path(
+                        vim.fn.stdpath("cache") .. "/java-run/" .. project_name
+                    )
 
                     if vim.fn.isdirectory(run_output_dir) == 0 then
                         vim.fn.mkdir(run_output_dir, "p")
                     end
 
+                    if not jdk_path then
+                        vim.notify("请先配置 JDK 路径", vim.log.levels.ERROR)
+                        return
+                    end
+
+                    local javac = userenv.get_java_bin(jdk_path, "javac")
+                    local java = userenv.get_java_bin(jdk_path, "java")
+                    local dir_norm = userenv.normalize_path(dir)
+                    local file_norm = userenv.normalize_path(file)
+
+                    -- 使用 userenv 的 cd 命令（平台自适应）
+                    local cd_cmd = userenv.cd_command(dir_norm)
+
                     local cmd = string.format(
-                        'cd /d "%s" && "%s" -d "%s" -cp "%s" "%s" && echo [编译成功，正在运行...] && "%s" -cp "%s" "%s"',
-                        dir,
-                        jdk_path .. "\\bin\\javac.exe",
+                        '%s && "%s" -d "%s" -cp "%s" "%s" && echo [编译成功，正在运行...] && "%s" -cp "%s" "%s"',
+                        cd_cmd,
+                        javac,
                         run_output_dir,
                         run_output_dir,
-                        file,
-                        jdk_path .. "\\bin\\java.exe",
+                        file_norm,
+                        java,
                         run_output_dir,
                         class
                     )
@@ -85,9 +117,12 @@ return {
                         return
                     end
 
-                    -- 禁用 Java 文件的自动格式化。JDTLS 在初始化阶段响应格式化很慢，
-                    -- 容易 timeout，甚至崩溃；需要格式化时可用 <leader>cf 手动触发。
+                    -- 禁用 Java 文件的自动格式化
                     vim.b[args.buf].autoformat = false
+
+                    if not jdk_path or not jdtls_path then
+                        return
+                    end
 
                     local root_dir = jdtls.setup.find_root({
                         ".git",
@@ -98,13 +133,19 @@ return {
                         ".project",
                     })
                     local project_name = vim.fn.fnamemodify(root_dir, ":p:h:t")
-                    local workspace_dir = vim.fn.stdpath("data")
-                        .. "\\jdtls-workspace\\"
-                        .. project_name
+                    local workspace_dir = userenv.normalize_path(
+                        vim.fn.stdpath("data") .. "/jdtls-workspace/" .. project_name
+                    )
+
+                    local launcher_jar = userenv.get_jdtls_launcher(jdtls_path)
+                    if not launcher_jar then
+                        vim.notify("未找到 JDTLS launcher jar，请检查 JDTLS 安装", vim.log.levels.ERROR)
+                        return
+                    end
 
                     jdtls.start_or_attach({
                         cmd = {
-                            jdk_path .. "\\bin\\java.exe",
+                            userenv.get_java_bin(jdk_path, "java"),
                             "-Declipse.application=org.eclipse.jdt.ls.core.id1",
                             "-Dosgi.bundles.defaultStartLevel=4",
                             "-Declipse.product=org.eclipse.jdt.ls.core.product",
@@ -118,9 +159,9 @@ return {
                             "--add-opens",
                             "java.base/java.lang=ALL-UNNAMED",
                             "-jar",
-                            vim.fn.glob(jdtls_path .. "\\plugins\\org.eclipse.equinox.launcher_*.jar"),
+                            launcher_jar,
                             "-configuration",
-                            jdtls_path .. "\\config_win",
+                            userenv.normalize_path(jdtls_path .. "/" .. userenv.get_jdtls_config_dir()),
                             "-data",
                             workspace_dir,
                         },
@@ -166,8 +207,6 @@ return {
                                         { name = "JavaSE-21", path = jdk_path, default = true },
                                     },
                                 },
-                                -- 把常见编译输出目录排除在 import 扫描之外，
-                                -- 避免 JDTLS 因为 .class 文件触发不必要的刷新
                                 import = {
                                     exclusions = {
                                         "**/node_modules/**",
@@ -185,14 +224,13 @@ return {
                 end,
             })
 
-            -- 【关键】手动重启 JDTLS 命令（不走 nvim-lspconfig 的默认配置）
+            -- 手动重启 JDTLS 命令
             vim.api.nvim_create_user_command("JavaLspRestart", function()
                 vim.notify("正在关闭 JDTLS...", vim.log.levels.INFO)
                 for _, client in ipairs(vim.lsp.get_clients({ name = "jdtls" })) do
                     vim.lsp.stop_client(client.id, true)
                 end
                 vim.defer_fn(function()
-                    -- 重新触发当前 buffer 的 FileType 事件即可启动
                     vim.cmd("doautocmd FileType")
                     vim.notify("JDTLS 已重启", vim.log.levels.INFO)
                 end, 1000)

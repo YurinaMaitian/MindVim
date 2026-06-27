@@ -1,7 +1,9 @@
--- lua/plugins/telescope.lua
+-- lua/plugins/telescope-exact.lua
+-- Telescope 配置：精确搜索 + 跨平台 fd/rg 检测
 -- 前置依赖：已将 fd 和 rg 加入系统环境变量 PATH
--- fd: D:\tools\fd-v10.4.2-x86_64-pc-windows-msvc\
--- rg: D:\tools\ripgrep-15.1.0-x86_64-pc-windows-msvc\
+
+local userenv = require("config.userenv")
+
 return {
     {
         "nvim-telescope/telescope.nvim",
@@ -30,14 +32,20 @@ return {
                 fuzzy = false,
             })
 
-            -- Windows 自动检测 fd/rg（依赖 PATH）
-            if vim.fn.has("win32") == 1 then
-                if vim.fn.executable("fd") == 0 and vim.fn.executable("fdfind") == 0 then
-                    vim.notify("未检测到 fd，Telescope 可能无法搜索文件", vim.log.levels.WARN)
-                end
-                if vim.fn.executable("rg") == 0 then
-                    vim.notify("未检测到 ripgrep，live_grep 可能无法使用", vim.log.levels.WARN)
-                end
+            -- 跨平台检测 fd/rg（所有平台都需要）
+            if vim.fn.executable("fd") == 0 and vim.fn.executable("fdfind") == 0 then
+                vim.notify(
+                    "未检测到 fd，Telescope 可能无法搜索文件。请安装："
+                        .. (userenv.is_windows and "scoop install fd" or "sudo apt install fd-find"),
+                    vim.log.levels.WARN
+                )
+            end
+            if vim.fn.executable("rg") == 0 then
+                vim.notify(
+                    "未检测到 ripgrep，live_grep 可能无法使用。请安装："
+                        .. (userenv.is_windows and "scoop install ripgrep" or "sudo apt install ripgrep"),
+                    vim.log.levels.WARN
+                )
             end
 
             return opts
